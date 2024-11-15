@@ -4,19 +4,12 @@ const session = require('express-session');
 const passport = require('passport');
 const { PrismaClient } = require('@prisma/client');
 const PrismaSessionStore = require('@quixo3/prisma-session-store').PrismaSessionStore;
-var fs = require('fs');
-const path = require('path');
-
 const app = express();
-const upload = multer({dest: 'uploads/' });
 const prisma = new PrismaClient();
-
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'))
-
 // Session
 app.use(
   session({
@@ -30,19 +23,22 @@ app.use(
   })
 );
 
+// File uploads
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+app.post('/upload', upload.single('file'), (req, res) => {
+  console.log(req.file); // Log file details
+  res.send('File uploaded successfully!');
+});
+
 // Passport
 app.use(passport.initialize());
 app.use(passport.session());
-
 // Passport config
 require('./models/user');
-
 // Routes
 const authRoutes = require('./routes/authRoutes');
 app.use('/', authRoutes);
-app.length('/form/:folder?', uploadController.getUploadForm);
-app.post('/upload/:folder?', upload.single())
-
 // Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
