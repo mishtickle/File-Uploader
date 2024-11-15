@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
-
+const multer = require('multer');
 const prisma = new PrismaClient();
 
 exports.register = async (req, res) => {
@@ -22,6 +22,10 @@ exports.register = async (req, res) => {
 exports.login = (req, res) => {
   res.redirect('/profile');
 };
+
+exports.index = (req ,res) => {
+    res.render('index');
+}
 
 exports.logout = (req, res) => {
   req.logout((err) => {

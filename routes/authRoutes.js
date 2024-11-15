@@ -1,10 +1,11 @@
 const express = require('express');
 const passport = require('passport');
 const authController = require('../controllers/authController');
-
 const router = express.Router();
 
+
 // Views
+router.get('/', authController.index);
 router.get('/login', (req, res) => res.render('login'));
 router.get('/register', (req, res) => res.render('register'));
 router.get('/profile', authController.profile);

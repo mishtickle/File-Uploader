@@ -26,6 +26,15 @@ app.use(
   })
 );
 
+// File uploads
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+
+app.post('/upload', upload.single('file'), (req, res) => {
+  console.log(req.file); // Log file details
+  res.send('File uploaded successfully!');
+});
+
 // Passport
 app.use(passport.initialize());
 app.use(passport.session());
