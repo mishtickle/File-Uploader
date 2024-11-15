@@ -8,12 +8,14 @@ var fs = require('fs');
 const path = require('path');
 
 const app = express();
+const upload = multer({dest: 'uploads/' });
 const prisma = new PrismaClient();
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'))
 
 // Session
 app.use(
@@ -28,35 +30,6 @@ app.use(
   })
 );
 
-// File uploads
-const multer = require('multer');
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      console.log('req.folder:', req.folder)
-      const uploadPath = path.join(__dirname, 'uploads', req.folder);
-  
-      // Create the directory if it doesn't exist
-      fs.mkdir(uploadPath, { recursive: true }, (err) => {
-        if (err) {
-          console.error('Error creating folder:', err);
-          return cb(err);
-        }
-        cb(null, uploadPath);
-      });
-    },
-    filename: (req, file, cb) => {
-      cb(null, Date.now() + '-' + file.originalname);
-    },
-  });
-  const upload = multer({ storage: storage });
-  app.post('/upload', (req, res, next) => {
-    console.log(req.folder);
-    next();
-  }, upload.single('file'), (req, res) => {
-    console.log(req.file);
-    res.send('File uploaded successfully');
-  });;
-
 // Passport
 app.use(passport.initialize());
 app.use(passport.session());
@@ -67,6 +40,8 @@ require('./models/user');
 // Routes
 const authRoutes = require('./routes/authRoutes');
 app.use('/', authRoutes);
+app.length('/form/:folder?', uploadController.getUploadForm);
+app.post('/upload/:folder?', upload.single())
 
 // Server
 const PORT = process.env.PORT || 3000;
