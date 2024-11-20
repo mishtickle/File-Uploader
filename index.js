@@ -6,10 +6,24 @@ const { PrismaClient } = require('@prisma/client');
 const PrismaSessionStore = require('@quixo3/prisma-session-store').PrismaSessionStore;
 const app = express();
 const prisma = new PrismaClient();
+const cloudinary = require('cloudinary').v2;
+
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true
+});
+
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.set('view engine', 'ejs');
+
+// Serve uploaded files
+app.use('/uploads', express.static('uploads'));
+
 // Session
 app.use(
   session({
@@ -23,22 +37,17 @@ app.use(
   })
 );
 
-// File uploads
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
-app.post('/upload', upload.single('file'), (req, res) => {
-  console.log(req.file); // Log file details
-  res.send('File uploaded successfully!');
-});
-
 // Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
 // Passport config
 require('./models/user');
+
 // Routes
 const authRoutes = require('./routes/authRoutes');
 app.use('/', authRoutes);
+
 // Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

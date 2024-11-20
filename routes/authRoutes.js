@@ -18,4 +18,11 @@ router.post(
 );
 router.get('/', authController.index)
 router.post('/logout', authController.logout);
+router.get('/folder/:name', authController.getFolder)
+router.get('/createFolder', authController.createFolder);
+router.post('/updateFolder', authController.updateFolder);
+router.post('/deleteFolder', authController.deleteFolder);
+router.post('/upload', authController.upload);
+router.post('/deleteFile', authController.deleteFile);
+
 module.exports = router;

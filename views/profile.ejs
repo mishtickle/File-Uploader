@@ -1,9 +1,254 @@
-<h1>Welcome, <%= user.name %>!</h1>
-<h2>Are you ready to upload your file?</h2>
-<form action="/upload" method="POST" enctype="multipart/form-data">
-    <input type="file" name="file">
-    <button type="submit">Upload</button>
-</form>
-<form action="/logout" method="POST">
-  <button type="submit">Logout</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - <%= user.name %></title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0;
+            color: #333;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .nav-buttons form {
+            margin: 0;
+        }
+        .button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .primary-button {
+            background-color: #007bff;
+            color: white;
+        }
+        .primary-button:hover {
+            background-color: #0056b3;
+        }
+        .secondary-button {
+            background-color: #6c757d;
+            color: white;
+        }
+        .secondary-button:hover {
+            background-color: #545b62;
+        }
+        .create-folder-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .create-folder-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .folder-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .folders-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .folders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .folder-card {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+        }
+        .folder-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .folder-name {
+            margin: 10px 0;
+            word-break: break-word;
+            color: #333;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .folder-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: auto;
+        }
+        .error-message {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ffcdd2;
+            display: none;
+        }
+        #editFolderForm {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
+        }
+        #editFolderForm form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        #editFolderForm input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome, <%= user.name %>!</h1>
+        <div class="nav-buttons">
+            <form action="/logout" method="POST">
+                <button type="submit" class="button secondary-button">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="create-folder-section">
+        <h2>Create New Folder</h2>
+        <form action="/createFolder" class="create-folder-form">
+            <input type="text" name="folder" class="folder-input" placeholder="Enter folder name" required>
+            <button type="submit" class="button primary-button">Create Folder</button>
+        </form>
+    </div>
+
+    <div id="errorMessage" class="error-message"></div>
+
+    <div class="folders-section">
+        <h2>Your Folders</h2>
+        <% if (locals.folders && locals.folders.length > 0) { %>
+            <div class="folders-grid">
+                <% for (let i = 0; i < locals.folders.length; i++) { %>
+                    <% let encodedText = encodeURIComponent(locals.folders[i].name) %>
+                    <% let baseUrl = '/folder/' %>
+                    <div class="folder-card">
+                        <a href="<%= baseUrl + encodedText %>" class="folder-name">
+                            <%= locals.folders[i].name %>
+                        </a>
+                        <div class="folder-actions">
+                            <button onclick="showEditForm('<%= encodedText %>', '<%= locals.folders[i].name %>')" class="button secondary-button">Edit</button>
+                            <button onclick="deleteFolder('<%= encodedText %>')" class="button secondary-button">Delete</button>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        <% } else { %>
+            <div class="empty-state">
+                <p>No folders yet. Create your first folder to get started!</p>
+            </div>
+        <% } %>
+    </div>
+
+    <div id="editFolderForm">
+        <h2>Edit Folder Name</h2>
+        <form action="/updateFolder" method="POST">
+            <input type="hidden" name="oldName" id="oldName">
+            <input type="text" name="newName" id="newName" required>
+            <button type="submit" class="button primary-button">Save</button>
+            <button type="button" onclick="hideEditForm()" class="button secondary-button">Cancel</button>
+        </form>
+    </div>
+
+    <script>
+        function showEditForm(encodedName, displayName) {
+            const form = document.getElementById('editFolderForm');
+            const oldNameInput = document.getElementById('oldName');
+            const newNameInput = document.getElementById('newName');
+            
+            oldNameInput.value = encodedName;
+            newNameInput.value = displayName;
+            form.style.display = 'block';
+        }
+
+        function hideEditForm() {
+            const form = document.getElementById('editFolderForm');
+            form.style.display = 'none';
+        }
+
+        async function deleteFolder(encodedName) {
+            if (!confirm('Are you sure you want to delete this folder?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/deleteFolder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `folderName=${encodedName}`
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    const errorMessage = document.getElementById('errorMessage');
+                    errorMessage.textContent = data.error || 'Error deleting folder';
+                    errorMessage.style.display = 'block';
+                    setTimeout(() => {
+                        errorMessage.style.display = 'none';
+                    }, 5000);
+                    return;
+                }
+
+                window.location.reload();
+            } catch (error) {
+                console.error('Error:', error);
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = 'Error deleting folder';
+                errorMessage.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

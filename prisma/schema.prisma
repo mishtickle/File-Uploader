@@ -19,11 +19,30 @@ model User {
   name      String?
   password  String
   createdAt DateTime @default(now())
+  Folder    Folder[]
 }
 
 model Session {
-  id          String   @id @default(cuid())
-  sid         String   @unique
-  data        String
-  expiresAt   DateTime
+  id        String   @id @default(cuid())
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
+}
+
+model Folder {
+  id       Int     @id @default(autoincrement())
+  name     String  @unique
+  author   User    @relation(fields: [authorId], references: [id])
+  authorId Int
+  Files    Files[]
+}
+
+model Files {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  url       String
+  size      Int      // File size in bytes
+  uploadedAt DateTime @default(now())
+  folder    Folder   @relation(fields: [folderId], references: [id])
+  folderId  Int
 }
